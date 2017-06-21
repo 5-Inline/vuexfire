@@ -46,5 +46,10 @@ export function createRecord (snapshot) {
         ? value
         : { '.value': value }
   res['.key'] = getKey(snapshot)
+
+  res['$key'] = getKey(snapshot)
+  res['$ref'] = snapshot.ref.toString()
+  res['$priority'] = snapshot.getPriority()
+  res['$length'] = snapshot.numChildren()
   return res
 }
