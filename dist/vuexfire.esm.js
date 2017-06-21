@@ -1,5 +1,5 @@
 /*!
- * vuexfire v2.1.3.2
+ * vuexfire v2.1.4
  * (c) 2017 Eduardo San Martin Morote
  * Released under the MIT License.
  */
