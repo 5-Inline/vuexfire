@@ -12,7 +12,7 @@
  */
 function indexForKey (array, key) {
   for (var i = 0; i < array.length; i++) {
-    if (array[i]['$key'] === key) { return i }
+    if (array[i]['.key'] === key) { return i }
   }
   /* istanbul ignore next: Fallback */
   return -1
@@ -71,7 +71,7 @@ function createRecord (snapshot) {
   var res = isObject(value)
         ? value
         : { '.value': value };
-  // res['.key'] = getKey(snapshot)
+  res['.key'] = getKey(snapshot);
 
   res['$key'] = getKey(snapshot);
   res['$ref'] = snapshot.ref.toString();
