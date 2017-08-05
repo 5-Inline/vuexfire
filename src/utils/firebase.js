@@ -45,7 +45,7 @@ export function createRecord (snapshot) {
   var res = isObject(value)
         ? value
         : { '.value': value }
-  // res['.key'] = getKey(snapshot)
+  res['.key'] = getKey(snapshot)
 
   res['$key'] = getKey(snapshot)
   res['$ref'] = snapshot.ref.toString()

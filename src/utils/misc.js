@@ -7,7 +7,7 @@
  */
 export function indexForKey (array, key) {
   for (let i = 0; i < array.length; i++) {
-    if (array[i]['$key'] === key) return i
+    if (array[i]['.key'] === key) return i
   }
   /* istanbul ignore next: Fallback */
   return -1
