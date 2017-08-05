@@ -45,52 +45,63 @@ function bindAsArray ({
   key,
   source,
   cancelCallback,
+  wait,
   commit,
   state,
 }) {
   // Initialise the array to an empty one
-  commit(types.VUEXFIRE_ARRAY_INITIALIZE, {
-    type: types.VUEXFIRE_ARRAY_INITIALIZE,
-    state,
-    key,
-  }, commitOptions)
+  const array = []
+  const initializeArray = () => {
+    commit(types.VUEXFIRE_ARRAY_INITIALIZE, {
+      type: types.VUEXFIRE_ARRAY_INITIALIZE,
+      state,
+      key,
+      value: array,
+    }, commitOptions)
+  }
+
+  if (!wait) {
+    initializeArray()
+  } else {
+    source.once('value', initializeArray)
+  }
+
   const onAdd = source.on('child_added', function (snapshot, prevKey) {
-    const array = state[key]
     const index = prevKey ? indexForKey(array, prevKey) + 1 : 0
     commit(types.VUEXFIRE_ARRAY_ADD, {
       type: types.VUEXFIRE_ARRAY_ADD,
       state,
       key,
       index,
+      array: wait && array,
       record: createRecord(snapshot),
     }, commitOptions)
   }, cancelCallback)
 
   const onRemove = source.on('child_removed', function (snapshot) {
-    const array = state[key]
     const index = indexForKey(array, getKey(snapshot))
     commit(types.VUEXFIRE_ARRAY_REMOVE, {
       type: types.VUEXFIRE_ARRAY_REMOVE,
       state,
       key,
       index,
+      array: wait && array,
     }, commitOptions)
   }, cancelCallback)
 
   const onChange = source.on('child_changed', function (snapshot) {
-    const array = state[key]
     const index = indexForKey(array, getKey(snapshot))
     commit(types.VUEXFIRE_ARRAY_CHANGE, {
       type: types.VUEXFIRE_ARRAY_CHANGE,
       state,
       key,
       index,
+      array: wait && array,
       record: createRecord(snapshot),
     }, commitOptions)
   }, cancelCallback)
 
   const onMove = source.on('child_moved', function (snapshot, prevKey) {
-    const array = state[key]
     const index = indexForKey(array, getKey(snapshot))
     var newIndex = prevKey ? indexForKey(array, prevKey) + 1 : 0
     // TODO refactor + 1
@@ -101,6 +112,7 @@ function bindAsArray ({
       key,
       index,
       newIndex,
+      array: wait && array,
       record: createRecord(snapshot),
     }, commitOptions)
   }, cancelCallback)
@@ -125,6 +137,7 @@ function bind ({
   options: {
     cancelCallback,
     readyCallback,
+    wait = true,
   },
 }) {
   if (!isObject(source)) {
@@ -147,20 +160,22 @@ function bind ({
   }
   binding.sources[key] = getRef(source)
 
+  // Support for SSR
+  // We have to listen for the readyCallback first so it
+  // gets called after the initializeArray callback
+  if (readyCallback) {
+    source.once('value', readyCallback)
+  }
+
   // Automatically detects if it should be bound as an array or as an object
   let listener
   if (state[key] && 'length' in state[key]) {
-    listener = bindAsArray({ key, source, cancelCallback, commit, state })
+    listener = bindAsArray({ key, source, cancelCallback, wait, commit, state })
   } else {
     listener = bindAsObject({ key, source, cancelCallback, commit, state })
   }
 
   binding.listeners[key] = listener
-
-  // Support for SSR
-  if (readyCallback) {
-    source.once('value', readyCallback)
-  }
 }
 
 function unbind ({ commit, key }) {
